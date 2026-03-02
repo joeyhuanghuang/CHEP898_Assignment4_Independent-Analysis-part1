@@ -1,0 +1,261 @@
+---
+title: "CHEP898_Assignment4_Independent-Analysis-part1"
+author: "Daoyi Huang"
+date: "2026-02-28"
+output: html_document
+---
+
+My Repositories: https://github.com/joeyhuanghuang/CHEP898_Assignment4_Independent-Analysis-part1.git   
+
+# 1. Identify a dataset   
+
+Since I am interested in cars, I chose a dataset about new car price prediction from the Kaggle website.     
+
+**Data source:** The dataset used for this independent analysus was downloaded from the Kaggle website, titled “New Cars Price 2019”.       
+Link: https://www.kaggle.com/datasets/prassanth/new-cars-price-2019?select=New_cars_price.csv
+
+**Sample size:**  The total sample size is 32316     
+
+**Variables:** There are 57 variables.     
+
+**Missing data**  This dataset has missing data. Details will show in the Data Wrangling part.   
+
+
+
+
+# 2. Develop an Analysis Plan   
+**My goal:** Explore the relationship between 2019 car prices and its characteristics, using clustering analysis, principal component analysis, and linear regression model.        
+
+**Major components of the course in your plan**   
+- Using GitHub to version control and document my project.   
+- Software: Applying R for data manipulation and analysis.    
+
+**Statistical Methodology**      
+**Data Wrangling**    
+**• Data cleaning:**          
+  - Load the dataset and examine their structure (e.g., variables, data types, unique values).     
+  - Identify outliers, exclude duplicates, and correct inconsistent formatting.       
+**•Descriptive analysis:**         
+  - Calculate mean, median, minimum, maximum, variance, and standard deviation for continuous variables; calculate frequency and percentage for categorical variables.     
+  - Identify trends or anomalies based on these statistics.       
+**• Data Visualization: **        
+  - Bar chart     
+  - Histograms
+  - Boxplot     
+  - Scatter plot   
+**• Correlation check: scatter plots and Pearson correlation.**    
+  
+**Model building**  
+• **Initial exploratory data analysis (EDA) to understand key features and relationship**            
+  - Correlation check         
+  - Univariable univariate analysis   
+• Split dataset: trainging data (70%) testing data (30%)      
+• **Model 1: Linear regression** (supervised learning)    
+• **Model 2: Principal component analysis (PCA) + Linear regression** (unsupervised learning + supervised learning)      
+  - Avoid multicollinearity among the features      
+  - Reduce the dimension of the features    
+  - Decide the number of components   
+  - Visualize the key components on the plots       
+  - Try to identify any meaningful theme for each component      
+• **Model 3: Clustering analysis (KMeans) + linear regression** (unsupervised learning + supervised learning)     
+
+**Model evaluation and comparison**     
+Compare the three different machine learning method and select the best model       
+- Diagnostic visulization (such as residuals plots and posterior predictive check plot)        
+- coefficient determination (RSQ)     
+- Root Mean Squared Error (RMSE)      
+
+**Interpretation for the best model**  
+
+
+
+
+# 3. Data Wrangling    
+**load the library **  
+**Import the can_path_data dataset**  
+```{r setup}
+library(tidyverse)
+library(tidymodels)
+library(reportRmd)
+library(sjPlot)
+library(plotly)
+library(psych)
+library(parallel)
+library(finalfit)
+library(gtsummary)
+library(mlbench)
+library(vip)
+library(rsample)
+library(tune)
+library(recipes)
+library(yardstick)
+library(parsnip)
+library(glmnet)
+library(themis)
+library(corrr)
+library(performance)
+library(utils)
+library(see)
+library(forestmodel)
+data_carprice<-read.csv("/Users/xiehuangbao/Library/CloudStorage/OneDrive-UniversityofSaskatchewan/Study at USask/CHEP898_Machine Learning/Assignment/Final assignment/CHEP898_Assignment4_Independent-Analysis-part1/new_car_price/New_cars_cleaned.csv")
+```
+
+```{r}
+glimpse(data_carprice)
+```
+
+There are 56 variables in this dataset.  
+
+
+**Outcome variable:** MRSP - Selling price in dollars           
+**Potential independent variables:**           
+Continuous variables:  
+EPA.Fuel.Economy.Est...City..MPG. - city mileage
+Passenger Capacity - Number of people who can be seated     
+Passenger Doors - Number of doors in a car      
+Base Curb Weight - Total weight of the vehicle in pounds      
+Passenger Volume - Volume of space available for passengers     
+Wheelbase - Distance between the centers of the front and rear wheels     
+Track Width Front - Distance between the centerline of two front wheels     
+Height Overall - Overall height of the car in inches      
+Fuel Tank Capacity, Approx(gal) - Fuel tank capacity in gallon     
+Displacement - Measure of the cylinder volume swept by all of the pistons (in liters)     
+Trans Type - Number of gears in the transmission    
+Turning Diameter Curb to Curb(ft) -Diameter of the smallest circular turn by the car     
+Stabilizer Bar Diameter - Front (in) - Diameter of the front sway bar
+
+
+Categorical variables:    
+Engine - Type of engine used in car   
+EPA Classification - EPA size classes (Mini compact, Midsize ,, Compact, Mid-Size, SUV)   
+Drivetrain - Types of drivetrain(Conveys power from the engine to wheels) used (FWD, RWD , AWD, 4WD )     
+Body Style - Body style of the car    
+Transmission - Type of transmission used. (Not req -- Trans type, Trans Description cont.)     
+Fuel System - Type of fuel injection used in car    
+Trans Description - Type of transmission used in car    
+Brake Type - Type of brake used in car    
+Suspension type Front - Type of Suspension used in car front wheels   
+Suspension type Rear - Type of Suspension used in car rear wheels   
+Air Bag Frontal Driver - Drivers Airbag(Y/N)      
+Air Bag Frontal Passenger - Front passenger Airbag(Y/N)   
+Air Bag-Side Body-Front - Airbags in front side of the car(Y/N)   
+Air Bag-Side Body-Rear - Airbags in rear side of the car(Y/N)   
+Air Bag Side Head-Front - Side airbags to protect head for front row(Y/N)   
+Air Bag Side Head-Rear - Side airbags to protect head for rear row(Y/N)   
+Brakes -ABS - Is Antilock bracking system is present(Y/N)   
+Child Safety Rear Door Locks - Child safety door locks(Y/N)   
+Daytime Running Lights - (Y/N)    
+Traction Control - Is TCS available (Y/N)   
+Night Vision - Thermographic camera to increase a driver's perception in darkness (Y/N)   
+Rollover Protection Bar - Is ROPS present (Y/N)   
+Fog Lamps - Is fog lamps present(Y/N)   
+Parking Aid - Senors to monitor nearby obstacles(Y/N)   
+Tire Pressure Monitor - Y/N   
+Back up Camera - Is reversing camera present (Y/N)    
+Stability Control - Is ECS present (Y/N)    
+Front Wheel Material - Material in which wheel is made up of    
+Corrosion Miles/km - Warranty against corrosion   
+Corrosion Years - Warranty against corrosion in years
+Drivetrain Miles/Km - Warranty for drivetrain     
+Drivetrain Years - Warranty for drivetrain in years   
+Basic Miles/km - Warrany Kms    
+Basic Years - Warranty years 
+Roadside assistance in years - Roadside assistance provided in terms of years
+Roadside Assistance Miles/km - Roadside assistance provided in terms of ****
+**Data cleaning**     
+
+```{r}
+sum(duplicated(data_carprice))  
+```
+There is no duplicated data existed in this dataset.      
+
+**Change the format of variables** 
+```{r}
+names(data_carprice)
+```
+
+```{r}
+data_carprice_clean <-data_carprice %>%
+    mutate(
+    MSRP_num = MSRP %>%
+      str_trim() %>%
+      str_replace_all("[\\$,]", "") %>% 
+      as.numeric(),
+    CityMilage_num = as.numeric(EPA.Fuel.Economy.Est...City..MPG. ),
+    BaseCurbWeightlbs_num = as.numeric(Base.Curb.Weight..lbs. ),
+    Heightoverall_num = as.numeric(Height..Overall..in. ),
+    FuelTankCapacity_num = as.numeric(Fuel.Tank.Capacity..Approx..gal.  ),
+    Displacement_num = as.numeric(sub(" L/.*", "", Displacement)),
+    TransType_num = as.numeric(Trans.Type),
+    TurningDiameter_num = as.numeric(Turning.Diameter...Curb.to.Curb..ft.),
+)
+```
+
+```{r}
+summary(data_carprice_clean$MSRP)
+summary(data_carprice_clean$Passenger.Volume..ft.. )
+```
+
+```{r}
+data_carprice_clean <-data_carprice_clean %>%
+  mutate(across(
+    c(
+      Engine,
+      EPA.Classification,
+      Drivetrain,
+      Body.Style,
+      Transmission,
+      Fuel.System,
+      Trans.Description.Cont.,
+      Brake.Type,
+      Suspension.Type...Front,
+      Suspension.Type...Rear,
+      Air.Bag.Frontal.Driver,
+      Air.Bag.Frontal.Passenger,
+      Air.Bag.Side.Body.Front,
+      Air.Bag.Side.Body.Rear,
+      Air.Bag.Side.Head.Front,
+      Air.Bag.Side.Head.Rear,
+      Brakes.ABS,
+      Child.Safety.Rear.Door.Locks,
+      Daytime.Running.Lights,
+      Traction.Control,
+      Night.Vision,
+      Rollover.Protection.Bars,
+      Fog.Lamps,
+      Parking.Aid,
+      Tire.Pressure.Monitor,
+      Back.Up.Camera,
+      Stability.Control,
+      Front.Wheel.Material,
+      Basic.Miles.km,
+      Basic.Years,
+      Corrosion.Miles.km,
+      Corrosion.Years,
+      Drivetrain.Miles.km,
+      Drivetrain.Years,
+      Roadside.Assistance.Years,
+      Roadside.Assistance.Miles.km
+    ),
+    ~ as.factor(.)
+  ))
+
+```
+
+```{r}
+glimpse(data_carprice_clean)
+```
+
+'MSRP_num', 'CityMilage_num', 'Passenger.Capacity', 'Passenger.Doors', 'BaseCurbWeightlbs_num', 'Wheelbase..in.', 'Track.Width..Front..in.', 'Heightoverall_num', 'FuelTankCapacity_num', 'Displacement_num', 'TransType_num', 'TurningDiameter_num', 'Stabilizer.Bar.Diameter...Front..in.', 
+'Engine', 'EPA.Classification','Drivetrain','Body.Style','Transmission','Fuel.System','Trans.Description.Cont.','Brake.Type','Suspension.Type...Front','Suspension.Type...Rear','Air.Bag.Frontal.Driver','Air.Bag.Frontal.Passenger','Air.Bag.Side.Body.Front','Air.Bag.Side.Body.Rear','Air.Bag.Side.Head.Front','Air.Bag.Side.Head.Rear','Brakes.ABS','Child.Safety.Rear.Door.Locks','Daytime.Running.Lights','Traction.Control','Night.Vision','Rollover.Protection.Bars','Fog.Lamps','Parking.Aid','Tire.Pressure.Monitor','Back.Up.Camera','Stability.Control','Front.Wheel.Material','Basic.Miles.km','Basic.Years','Corrosion.Miles.km','Corrosion.Years','Drivetrain.Miles.km','Drivetrain.Years','Roadside.Assistance.Years','Roadside.Assistance.Miles.km'
+
+```{r}
+rm_covsum(data=data_carprice_clean,
+covs = c('EPA.Classification'))
+```
+
+```{r}
+summary(data_carprice_clean)
+```
+
+
