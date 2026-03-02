@@ -118,14 +118,19 @@ Passenger Volume - Volume of space available for passengers
 Wheelbase - Distance between the centers of the front and rear wheels     
 Track Width Front - Distance between the centerline of two front wheels     
 Height Overall - Overall height of the car in inches      
+SAE.Net.Torque...RPM 
+SAE.Net.Horsepower...RPM
 Fuel Tank Capacity, Approx(gal) - Fuel tank capacity in gallon     
 Displacement - Measure of the cylinder volume swept by all of the pistons (in liters)     
 Trans Type - Number of gears in the transmission    
-Turning Diameter Curb to Curb(ft) -Diameter of the smallest circular turn by the car     
 Stabilizer Bar Diameter - Front (in) - Diameter of the front sway bar
+Front.tire.aspect.ratio 
+Front.tire.rim.size  
 
 
 Categorical variables:    
+Manufacturer   
+Category    
 Engine - Type of engine used in car   
 EPA Classification - EPA size classes (Mini compact, Midsize ,, Compact, Mid-Size, SUV)   
 Drivetrain - Types of drivetrain(Conveys power from the engine to wheels) used (FWD, RWD , AWD, 4WD )     
@@ -174,40 +179,18 @@ There is no duplicated data existed in this dataset.
 names(data_carprice)
 ```
 
-```{r}
-data_carprice_clean <-data_carprice %>%
-    mutate(
-    MSRP_num = MSRP %>%
-      str_trim() %>%
-      str_replace_all("[\\$,]", "") %>% 
-      as.numeric(),
-    CityMilage_num = as.numeric(EPA.Fuel.Economy.Est...City..MPG. ),
-    BaseCurbWeightlbs_num = as.numeric(Base.Curb.Weight..lbs. ),
-    Heightoverall_num = as.numeric(Height..Overall..in. ),
-    FuelTankCapacity_num = as.numeric(Fuel.Tank.Capacity..Approx..gal.  ),
-    Displacement_num = as.numeric(sub(" L/.*", "", Displacement)),
-    TransType_num = as.numeric(Trans.Type),
-    TurningDiameter_num = as.numeric(Turning.Diameter...Curb.to.Curb..ft.),
-)
-```
 
 ```{r}
-summary(data_carprice_clean$MSRP)
-summary(data_carprice_clean$Passenger.Volume..ft.. )
-```
-
-```{r}
-data_carprice_clean <-data_carprice_clean %>%
+data_carprice <-data_carprice %>%
   mutate(across(
     c(
       Engine,
-      EPA.Classification,
+      Category,
+      Manufacturer,
       Drivetrain,
-      Body.Style,
-      Transmission,
+      Trans.Type,
       Fuel.System,
       Trans.Description.Cont.,
-      Brake.Type,
       Suspension.Type...Front,
       Suspension.Type...Rear,
       Air.Bag.Frontal.Driver,
@@ -243,19 +226,44 @@ data_carprice_clean <-data_carprice_clean %>%
 ```
 
 ```{r}
-glimpse(data_carprice_clean)
+glimpse(data_carprice)
 ```
 
-'MSRP_num', 'CityMilage_num', 'Passenger.Capacity', 'Passenger.Doors', 'BaseCurbWeightlbs_num', 'Wheelbase..in.', 'Track.Width..Front..in.', 'Heightoverall_num', 'FuelTankCapacity_num', 'Displacement_num', 'TransType_num', 'TurningDiameter_num', 'Stabilizer.Bar.Diameter...Front..in.', 
-'Engine', 'EPA.Classification','Drivetrain','Body.Style','Transmission','Fuel.System','Trans.Description.Cont.','Brake.Type','Suspension.Type...Front','Suspension.Type...Rear','Air.Bag.Frontal.Driver','Air.Bag.Frontal.Passenger','Air.Bag.Side.Body.Front','Air.Bag.Side.Body.Rear','Air.Bag.Side.Head.Front','Air.Bag.Side.Head.Rear','Brakes.ABS','Child.Safety.Rear.Door.Locks','Daytime.Running.Lights','Traction.Control','Night.Vision','Rollover.Protection.Bars','Fog.Lamps','Parking.Aid','Tire.Pressure.Monitor','Back.Up.Camera','Stability.Control','Front.Wheel.Material','Basic.Miles.km','Basic.Years','Corrosion.Miles.km','Corrosion.Years','Drivetrain.Miles.km','Drivetrain.Years','Roadside.Assistance.Years','Roadside.Assistance.Miles.km'
+'MSRP', 'EPA.Fuel.Economy.Est...City..MPG.', 'Passenger.Capacity', 'Passenger.Doors', 'Base.Curb.Weight..lbs.', 'Passenger.Volume..ft..', 'Wheelbase..in.', 'Track.Width..Front..in.', 'Height..Overall..in.', 'Fuel.Tank.Capacity..Approx..gal.', 'SAE.Net.Horsepower...RPM', 'Displacement', 'Stabilizer.Bar.Diameter...Front..in.',  'Front.tire.aspect.ratio', 'Front.tire.rim.size '
+
+
+**Define missing data**     
+```{r}
+missing_data_define <-c('Engine','Category','Manufacturer','Drivetrain','Trans.Type','Fuel.System','Trans.Description.Cont.','Suspension.Type...Front','Suspension.Type...Rear','Air.Bag.Frontal.Driver','Air.Bag.Frontal.Passenger','Air.Bag.Side.Body.Front','Air.Bag.Side.Body.Rear','Air.Bag.Side.Head.Front','Air.Bag.Side.Head.Rear','Brakes.ABS','Child.Safety.Rear.Door.Locks','Daytime.Running.Lights','Traction.Control','Night.Vision','Rollover.Protection.Bars','Fog.Lamps','Parking.Aid','Tire.Pressure.Monitor','Back.Up.Camera','Stability.Control','Front.Wheel.Material','Basic.Miles.km','Basic.Years','Corrosion.Miles.km','Corrosion.Years','Drivetrain.Miles.km','Drivetrain.Years','Roadside.Assistance.Years','Roadside.Assistance.Miles.km' )
+data_carprice <- data_carprice %>%
+  mutate(across(
+    all_of(missing_data_define),
+    ~ na_if(as.character(.x), "")
+  ))
+
+```
 
 ```{r}
-rm_covsum(data=data_carprice_clean,
-covs = c('EPA.Classification'))
+rm_covsum(data=data_carprice,
+covs = c('MSRP', 'EPA.Fuel.Economy.Est...City..MPG.', 'Passenger.Capacity', 'Passenger.Doors', 'Base.Curb.Weight..lbs.', 'Passenger.Volume..ft..', 'Wheelbase..in.', 'Track.Width..Front..in.', 'Height..Overall..in.', 'Fuel.Tank.Capacity..Approx..gal.', 'SAE.Net.Horsepower...RPM', 'Displacement', 'Stabilizer.Bar.Diameter...Front..in.',  'Front.tire.aspect.ratio', 'Front.tire.rim.size',
+'Engine','Category','Manufacturer','Drivetrain','Trans.Type','Fuel.System','Trans.Description.Cont.','Suspension.Type...Front','Suspension.Type...Rear','Air.Bag.Frontal.Driver','Air.Bag.Frontal.Passenger','Air.Bag.Side.Body.Front','Air.Bag.Side.Body.Rear','Air.Bag.Side.Head.Front','Air.Bag.Side.Head.Rear','Brakes.ABS','Child.Safety.Rear.Door.Locks','Daytime.Running.Lights','Traction.Control','Night.Vision','Rollover.Protection.Bars','Fog.Lamps','Parking.Aid','Tire.Pressure.Monitor','Back.Up.Camera','Stability.Control','Front.Wheel.Material','Basic.Miles.km','Basic.Years','Corrosion.Miles.km','Corrosion.Years','Drivetrain.Miles.km','Drivetrain.Years','Roadside.Assistance.Years','Roadside.Assistance.Miles.km'   
+         ))
 ```
 
+
 ```{r}
-summary(data_carprice_clean)
+data_carprice <- data_carprice %>% select(!c(Stabilizer.Bar.Diameter...Front..in., Air.Bag.Side.Head.Front, Air.Bag.Side.Head.Rear, Roadside.Assistance.Years))
+
+
+data_carprice_nomissing <- data_carprice %>% 
+  tidyr::drop_na()
+
 ```
+
+Since variables Stabilizer Bar Diameter Front in", "Air Bag Side Head Front", "Air Bag Side Head Rear", and "Roadside Assistance Years" have too many missing data, those variables will be eliminated. The new data has 4865 observations and 52 variables.   
+
+
+
+
 
 
